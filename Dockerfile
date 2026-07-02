@@ -10,10 +10,6 @@ WORKDIR /app
 # Copia só os arquivos de dependência primeiro (melhora cache de build)
 COPY --chown=pptruser:pptruser package*.json ./
 
-# A imagem já tem o Chrome instalado — não deixamos o npm baixar outro Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-
 RUN npm install --omit=dev
 
 COPY --chown=pptruser:pptruser . .
