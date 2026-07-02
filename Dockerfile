@@ -1,18 +1,32 @@
-# Imagem oficial do Puppeteer: já vem com o Chrome instalado e todas as
-# bibliotecas de sistema que o Chrome precisa pra rodar headless em Linux.
-# Isso evita o erro mais comum de quem tenta rodar Puppeteer em produção
-# ("Chrome não conseguiu iniciar") por falta de dependências do sistema.
-FROM ghcr.io/puppeteer/puppeteer:23.9.0
+# Base simples do Node — instalamos o Chrome nós mesmos abaixo, em vez de
+# depender de um caminho pré-instalado "escondido" numa imagem de terceiros.
+FROM node:20-slim
 
-# A imagem já roda como usuário não-root (pptruser) por padrão — mantemos assim.
+# Instala o Google Chrome estável direto do repositório oficial do Google.
+# Isso garante um caminho fixo e conhecido (/usr/bin/google-chrome-stable),
+# sem depender de onde o pacote puppeteer decidiu cachear seu próprio download.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    ca-certificates \
+    fonts-liberation \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Impede que o pacote "puppeteer" do package.json baixe seu PRÓPRIO Chrome
+# durante o npm install — já temos um instalado acima, e vamos apontar pra ele.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
 WORKDIR /app
 
-# Copia só os arquivos de dependência primeiro (melhora cache de build)
-COPY --chown=pptruser:pptruser package*.json ./
-
+COPY package*.json ./
 RUN npm install --omit=dev
 
-COPY --chown=pptruser:pptruser . .
+COPY . .
 
 EXPOSE 3000
 
