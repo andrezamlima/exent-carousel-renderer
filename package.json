@@ -1,0 +1,14 @@
+{
+  "name": "exent-carousel-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serviço local de renderização HTML -> PNG para o pipeline de carrosséis do Brain (substitui a HCTI, sem limite de chamadas)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-html-to-image": "^4.0.0"
+  }
+}
