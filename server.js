@@ -1,5 +1,6 @@
 const express = require('express');
 const nodeHtmlToImage = require('node-html-to-image');
+const puppeteer = require('puppeteer'); // versão atual, não a antiga embutida na node-html-to-image
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -62,9 +63,15 @@ app.post('/render', async (req, res) => {
     const image = await nodeHtmlToImage({
       html: wrappedHtml,
       type: 'png',
+      puppeteer, // usa a versão moderna declarada no package.json, não a antiga embutida
       puppeteerArgs: {
         executablePath,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu'
+        ],
         defaultViewport: {
           width,
           height,
